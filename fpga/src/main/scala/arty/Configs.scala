@@ -31,4 +31,26 @@ class TinyRocketArtyConfig extends Config(
   new freechips.rocketchip.subsystem.WithNBreakpoints(2) ++
   new chipyard.TinyRocketConfig
 )
+
+class DemoSoCArty35Config extends Config(
+  new WithQSPIPassthrough ++
+  new WithArtyQSPIHarnessBinder ++
+
+  new WithUARTPassthrough ++
+  new WithArtyUARTHarnessBinder ++
+
+  new WithGPIOPassthrough ++
+  new WithArtyGPIOHarnessBinder ++
+
+  new WithArtyJTAGHarnessBinder ++
+  new WithArtyResetHarnessBinder ++
+  new WithDebugResetPassthrough ++
+
+  new chipyard.config.WithDTSTimebase(32768) ++
+  new testchipip.WithNoSerialTL ++
+
+  new freechips.rocketchip.subsystem.WithNBreakpoints(2) ++
+  
+  new chipyard.DemoSoCConfig
+)
 // DOC include end: AbstractArty and Rocket

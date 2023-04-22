@@ -42,3 +42,21 @@ class ChipLikeQuadRocketConfig extends Config(
 
   new chipyard.config.AbstractConfig)
 
+class DemoSoCConfig extends Config(
+  new chipyard.config.WithSPIFlash(address=0x10030000, fAddress=0x20000000, size=0x10000000) ++
+
+  new chipyard.config.WithUART(address=0x10021000, baudrate=115200) ++
+  new chipyard.config.WithUARTOverride(address=0x10020000, baudrate=115200) ++
+  
+  new chipyard.config.WithGPIO(address=0x10012000, width=24) ++
+  new chipyard.config.WithGPIO(address=0x10010000, width=3) ++
+
+  new chipyard.config.WithTLSerialLocation(
+    freechips.rocketchip.subsystem.FBUS,
+    freechips.rocketchip.subsystem.PBUS) ++                       // attach TL serial adapter to f/p busses
+  new freechips.rocketchip.subsystem.WithIncoherentBusTopology ++ // use incoherent bus topology
+  new freechips.rocketchip.subsystem.WithNBanks(0) ++             // remove L2$
+  new freechips.rocketchip.subsystem.WithNoMemPort ++             // remove backing memory
+  new freechips.rocketchip.subsystem.With1TinyCore ++             // single tiny rocket-core
+  new chipyard.config.AbstractConfig
+  )
