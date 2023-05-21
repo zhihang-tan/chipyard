@@ -75,12 +75,12 @@ class WithDMIDTM extends Config((site, here, up) => {
   case ExportDebug => up(ExportDebug, site).copy(protocols = Set(DMI))
 })
 
-class WithJTAGDTMKey(partNum: Int = 0x000, manufId: Int = 0x489) extends Config((site, here, up) => {
+class WithJTAGDTMKey(idcodeVersion: Int = 2, partNum: Int = 0x000, manufId: Int = 0x489, debugIdleCycles: Int = 5) extends Config((site, here, up) => {
   case JtagDTMKey => new JtagDTMConfig (
-    idcodeVersion = 2,
+    idcodeVersion = idcodeVersion,
     idcodePartNum = partNum,
     idcodeManufId = manufId,
-    debugIdleCycles = 5)
+    debugIdleCycles = debugIdleCycles)
 })
 
 class WithNoDebug extends Config((site, here, up) => {
