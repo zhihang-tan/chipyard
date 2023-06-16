@@ -36,3 +36,31 @@ class TinyRocketArtyConfig extends Config(
   new chipyard.TinyRocketConfig
 )
 // DOC include end: AbstractArty and Rocket
+
+
+class ExampleChipArty35TConfig extends Config(
+  // new WithQSPIPassthrough ++
+  // new WithArtyQSPIHarnessBinder ++
+
+  new WithUARTPassthrough ++
+  new WithArtyUARTHarnessBinder ++
+
+  new WithGPIOPassthrough ++
+  new WithArtyGPIOHarnessBinder ++
+
+  new WithArtyJTAGHarnessBinder ++
+  new WithArtyResetHarnessBinder ++
+  new WithDebugResetPassthrough ++
+
+
+  new chipyard.harness.WithHarnessBinderClockFreqMHz(32) ++
+  new chipyard.harness.WithAllClocksFromHarnessClockInstantiator ++
+  new chipyard.config.WithMemoryBusFrequency(32) ++
+  new chipyard.config.WithSystemBusFrequency(32) ++
+  new chipyard.config.WithPeripheryBusFrequency(32) ++
+
+  new chipyard.config.WithDTSTimebase(32768) ++
+  new testchipip.WithNoSerialTL ++
+  
+  new chipyard.ExampleChipConfig
+)
