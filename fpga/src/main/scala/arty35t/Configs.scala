@@ -1,5 +1,5 @@
 // See LICENSE for license details.
-package chipyard.fpga.arty
+package chipyard.fpga.arty35t
 
 import org.chipsalliance.cde.config._
 import freechips.rocketchip.subsystem._

@@ -1,4 +1,4 @@
-package chipyard.fpga.arty
+package chipyard.fpga.arty35t
 
 import chisel3._
 
@@ -6,12 +6,12 @@ import freechips.rocketchip.diplomacy.{LazyModule}
 import freechips.rocketchip.prci.{ClockBundle, ClockBundleParameters}
 import org.chipsalliance.cde.config.{Parameters}
 
-import sifive.fpgashells.shell.xilinx.artyshell.{ArtyShell}
+import sifive.fpgashells.shell.xilinx.artyshell.{Arty35TShell}
 
 import chipyard.harness.{HasHarnessInstantiators}
 import chipyard.iobinders.{HasIOBinders}
 
-class ArtyFPGATestHarness(override implicit val p: Parameters) extends ArtyShell with HasHarnessInstantiators {
+class ArtyFPGATestHarness(override implicit val p: Parameters) extends Arty35TShell with HasHarnessInstantiators {
   // Convert harness resets from Bool to Reset type.
   val hReset = Wire(Reset())
   hReset := ~ck_rst

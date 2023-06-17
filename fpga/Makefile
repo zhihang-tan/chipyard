@@ -62,9 +62,9 @@ ifeq ($(SUB_PROJECT),arty)
 	SBT_PROJECT       ?= fpga_platforms
 	MODEL             ?= ArtyFPGATestHarness
 	VLOG_MODEL        ?= ArtyFPGATestHarness
-	MODEL_PACKAGE     ?= chipyard.fpga.arty
+	MODEL_PACKAGE     ?= chipyard.fpga.arty35t
 	CONFIG            ?= TinyRocketArtyConfig
-	CONFIG_PACKAGE    ?= chipyard.fpga.arty
+	CONFIG_PACKAGE    ?= chipyard.fpga.arty35t
 	GENERATOR_PACKAGE ?= chipyard
 	TB                ?= none # unused
 	TOP               ?= ChipTop
@@ -90,9 +90,9 @@ ifeq ($(SUB_PROJECT),ExampleChipArty35TConfig)
 	SBT_PROJECT       ?= fpga_platforms
 	MODEL             ?= ArtyFPGATestHarness
 	VLOG_MODEL        ?= ArtyFPGATestHarness
-	MODEL_PACKAGE     ?= chipyard.fpga.arty
+	MODEL_PACKAGE     ?= chipyard.fpga.arty35t
 	CONFIG            ?= ExampleChipArty35TConfig
-	CONFIG_PACKAGE    ?= chipyard.fpga.arty
+	CONFIG_PACKAGE    ?= chipyard.fpga.arty35t
 	GENERATOR_PACKAGE ?= chipyard
 	TB                ?= none # unused
 	TOP               ?= ChipTop
