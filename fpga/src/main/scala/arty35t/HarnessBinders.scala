@@ -21,7 +21,7 @@ import chipyard.harness.{ComposeHarnessBinder, OverrideHarnessBinder}
 import chipyard.iobinders.JTAGChipIO
 
 class WithArtyResetHarnessBinder extends ComposeHarnessBinder({
-  (system: HasPeripheryDebug, th: ArtyFPGATestHarness, ports: Seq[Data]) => {
+  (system: HasPeripheryDebug, th: Arty35THarness, ports: Seq[Data]) => {
     val resetPorts = ports.collect { case b: Bool => b }
     require(resetPorts.size == 2)
     withClockAndReset(th.clock_32MHz, th.ck_rst) {
@@ -35,7 +35,7 @@ class WithArtyResetHarnessBinder extends ComposeHarnessBinder({
 })
 
 class WithArtyJTAGHarnessBinder extends OverrideHarnessBinder({
-  (system: HasPeripheryDebug, th: ArtyFPGATestHarness, ports: Seq[Data]) => {
+  (system: HasPeripheryDebug, th: Arty35THarness, ports: Seq[Data]) => {
     ports.map {
       case j: JTAGChipIO => withClockAndReset(th.referenceClock, th.hReset) {
         val jtag_wire = Wire(new JTAGIO)
@@ -75,55 +75,73 @@ class WithArtyJTAGHarnessBinder extends OverrideHarnessBinder({
 })
 
 class WithArtyUARTHarnessBinder extends OverrideHarnessBinder({
-  (system: HasPeripheryUARTModuleImp, th: ArtyFPGATestHarness, ports: Seq[UARTPortIO]) => {
+  (system: HasPeripheryUARTModuleImp, th: Arty35THarness, ports: Seq[UARTPortIO]) => {
     withClockAndReset(th.clock_32MHz, th.ck_rst) {
       IOBUF(th.uart_rxd_out, ports(0).txd)
       ports(0).rxd := IOBUF(th.uart_txd_in)
       
       IOBUF(th.jd_3, ports(1).txd)
       ports(1).rxd := IOBUF(th.jd_7)
+
+      IOBUF(th.ck_io(0), ports(2).txd)
+      ports(2).rxd := IOBUF(th.ck_io(1))
     }
   }
 })
 
 class WithArtyGPIOHarnessBinder extends OverrideHarnessBinder({
-  (system: HasPeripheryGPIOModuleImp, th: ArtyFPGATestHarness, ports: Seq[GPIOPortIO]) => {
+  (system: HasPeripheryGPIOModuleImp, th: Arty35THarness, ports: Seq[GPIOPortIO]) => {
     withClockAndReset(th.clock_32MHz, th.ck_rst) {
-      IOBUF(th.ja_2, ports(0).pins(0).toBasePin())
-      IOBUF(th.ja_3, ports(0).pins(1).toBasePin())
-      IOBUF(th.ja_4, ports(0).pins(2).toBasePin())
+      IOBUF(th.led0_r, ports(0).pins(0).toBasePin())
+      IOBUF(th.led0_g, ports(0).pins(1).toBasePin())
+      IOBUF(th.led0_b, ports(0).pins(2).toBasePin())
+      IOBUF(th.led_0,  ports(0).pins(3).toBasePin())
+      IOBUF(th.led1_r, ports(0).pins(4).toBasePin())
+      IOBUF(th.led1_g, ports(0).pins(5).toBasePin())
+      IOBUF(th.led1_b, ports(0).pins(6).toBasePin())
+      IOBUF(th.led_1,  ports(0).pins(7).toBasePin())
+      IOBUF(th.led2_r, ports(0).pins(8).toBasePin())
+      IOBUF(th.led2_g, ports(0).pins(9).toBasePin())
+      IOBUF(th.led2_b, ports(0).pins(10).toBasePin())
+      IOBUF(th.led_2,  ports(0).pins(11).toBasePin())
+      IOBUF(th.led3_r, ports(0).pins(12).toBasePin())
+      IOBUF(th.led3_g, ports(0).pins(13).toBasePin())
+      IOBUF(th.led3_b, ports(0).pins(14).toBasePin())
+      IOBUF(th.led_3,  ports(0).pins(15).toBasePin())
+      IOBUF(th.sw_0,   ports(0).pins(16).toBasePin())
+      IOBUF(th.sw_1,   ports(0).pins(17).toBasePin())
+      IOBUF(th.sw_2,   ports(0).pins(18).toBasePin())
+      IOBUF(th.sw_3,   ports(0).pins(19).toBasePin())
+      IOBUF(th.btn_0,  ports(0).pins(20).toBasePin())
+      IOBUF(th.btn_1,  ports(0).pins(21).toBasePin())
+      IOBUF(th.btn_2,  ports(0).pins(22).toBasePin())
+      IOBUF(th.btn_3,  ports(0).pins(23).toBasePin())
 
-      
-      IOBUF(th.led0_r, ports(1).pins(0).toBasePin())
-      IOBUF(th.led0_g, ports(1).pins(1).toBasePin())
-      IOBUF(th.led0_b, ports(1).pins(2).toBasePin())
-      IOBUF(th.led_0,  ports(1).pins(3).toBasePin())
-      IOBUF(th.led1_r, ports(1).pins(4).toBasePin())
-      IOBUF(th.led1_g, ports(1).pins(5).toBasePin())
-      IOBUF(th.led1_b, ports(1).pins(6).toBasePin())
-      IOBUF(th.led_1,  ports(1).pins(7).toBasePin())
-      IOBUF(th.led2_r, ports(1).pins(8).toBasePin())
-      IOBUF(th.led2_g, ports(1).pins(9).toBasePin())
-      IOBUF(th.led2_b, ports(1).pins(10).toBasePin())
-      IOBUF(th.led_2,  ports(1).pins(11).toBasePin())
-      IOBUF(th.led3_r, ports(1).pins(12).toBasePin())
-      IOBUF(th.led3_g, ports(1).pins(13).toBasePin())
-      IOBUF(th.led3_b, ports(1).pins(14).toBasePin())
-      IOBUF(th.led_3,  ports(1).pins(15).toBasePin())
-      IOBUF(th.sw_0,   ports(1).pins(16).toBasePin())
-      IOBUF(th.sw_1,   ports(1).pins(17).toBasePin())
-      IOBUF(th.sw_2,   ports(1).pins(18).toBasePin())
-      IOBUF(th.sw_3,   ports(1).pins(19).toBasePin())
-      IOBUF(th.btn_0,  ports(1).pins(20).toBasePin())
-      IOBUF(th.btn_1,  ports(1).pins(21).toBasePin())
-      IOBUF(th.btn_2,  ports(1).pins(22).toBasePin())
-      IOBUF(th.btn_3,  ports(1).pins(23).toBasePin())
+      IOBUF(th.ck_io(26), ports(1).pins(0).toBasePin())
+      IOBUF(th.ck_io(27), ports(1).pins(1).toBasePin())
+      IOBUF(th.ck_io(28), ports(1).pins(2).toBasePin())
+      IOBUF(th.ck_io(29), ports(1).pins(3).toBasePin())
+      IOBUF(th.ck_io(30), ports(1).pins(4).toBasePin())
+      IOBUF(th.ck_io(31), ports(1).pins(5).toBasePin())
+      IOBUF(th.ck_io(32), ports(1).pins(6).toBasePin())
+      IOBUF(th.ck_io(33), ports(1).pins(7).toBasePin())
+      IOBUF(th.ck_io(34), ports(1).pins(8).toBasePin())
+      IOBUF(th.ck_io(35), ports(1).pins(9).toBasePin())
+      IOBUF(th.ck_io(36), ports(1).pins(10).toBasePin())
+      IOBUF(th.ck_io(37), ports(1).pins(11).toBasePin())
+      IOBUF(th.ck_io(38), ports(1).pins(12).toBasePin())
+      IOBUF(th.ck_io(39), ports(1).pins(13).toBasePin())
+      IOBUF(th.ck_io(40), ports(1).pins(14).toBasePin())
+      IOBUF(th.ck_io(41), ports(1).pins(15).toBasePin())
+
+      IOBUF(th.ck_io(8), ports(2).pins(0).toBasePin())
+      IOBUF(th.ck_io(9), ports(2).pins(1).toBasePin())
     }
   }
 })
 
 class WithArtyQSPIHarnessBinder extends OverrideHarnessBinder({
-  (system: HasPeripherySPIFlashModuleImp, th: ArtyFPGATestHarness, ports: Seq[SPIPortIO]) => {
+  (system: HasPeripherySPIFlashModuleImp, th: Arty35THarness, ports: Seq[SPIPortIO]) => {
     // // connect to on-board SPI Flash
     // th.connectSPIFlash(ports(0), th.clock_32MHz, th.ck_rst)
     withClockAndReset(th.clock_32MHz, th.ck_rst) {

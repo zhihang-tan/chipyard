@@ -126,7 +126,7 @@ class ExampleChipConfig extends Config(
 
   // Core settings
   new freechips.rocketchip.subsystem.WithNExtTopInterrupts(0) ++    // no external interrupts
-  new freechips.rocketchip.subsystem.WithNSmallCores(1) ++
+  new freechips.rocketchip.subsystem.WithNBigCores(1) ++
 
   // ==================================
   //   Set up reset and clocking

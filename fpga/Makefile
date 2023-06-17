@@ -60,8 +60,8 @@ endif
 ifeq ($(SUB_PROJECT),arty)
 	# TODO: Fix with Arty
 	SBT_PROJECT       ?= fpga_platforms
-	MODEL             ?= ArtyFPGATestHarness
-	VLOG_MODEL        ?= ArtyFPGATestHarness
+	MODEL             ?= Arty35THarness
+	VLOG_MODEL        ?= Arty35THarness
 	MODEL_PACKAGE     ?= chipyard.fpga.arty35t
 	CONFIG            ?= TinyRocketArtyConfig
 	CONFIG_PACKAGE    ?= chipyard.fpga.arty35t
@@ -88,8 +88,8 @@ endif
 ifeq ($(SUB_PROJECT),ExampleChipArty35TConfig)
 	# TODO: Fix with Arty
 	SBT_PROJECT       ?= fpga_platforms
-	MODEL             ?= ArtyFPGATestHarness
-	VLOG_MODEL        ?= ArtyFPGATestHarness
+	MODEL             ?= Arty35THarness
+	VLOG_MODEL        ?= Arty35THarness
 	MODEL_PACKAGE     ?= chipyard.fpga.arty35t
 	CONFIG            ?= ExampleChipArty35TConfig
 	CONFIG_PACKAGE    ?= chipyard.fpga.arty35t
@@ -97,6 +97,20 @@ ifeq ($(SUB_PROJECT),ExampleChipArty35TConfig)
 	TB                ?= none # unused
 	TOP               ?= ChipTop
 	BOARD             ?= arty
+	FPGA_BRAND        ?= xilinx
+endif
+ifeq ($(SUB_PROJECT),ExampleChipArty100TConfig)
+	# TODO: Fix with Arty
+	SBT_PROJECT       ?= fpga_platforms
+	MODEL             ?= Arty100THarness
+	VLOG_MODEL        ?= Arty100THarness
+	MODEL_PACKAGE     ?= chipyard.fpga.arty100t
+	CONFIG            ?= ExampleChipArty100TConfig
+	CONFIG_PACKAGE    ?= chipyard.fpga.arty100t
+	GENERATOR_PACKAGE ?= chipyard
+	TB                ?= none # unused
+	TOP               ?= ChipTop
+	BOARD             ?= arty_a7_100
 	FPGA_BRAND        ?= xilinx
 endif
 

@@ -2,59 +2,178 @@ package chipyard.fpga.arty100t
 
 import chisel3._
 
+import freechips.rocketchip.devices.debug.{HasPeripheryDebug}
 import freechips.rocketchip.jtag.{JTAGIO}
-import freechips.rocketchip.subsystem.{PeripheryBusKey}
-import freechips.rocketchip.tilelink.{TLBundle}
-import freechips.rocketchip.util.{HeterogeneousBag}
-import freechips.rocketchip.diplomacy.{LazyRawModuleImp}
 
-import sifive.blocks.devices.uart.{UARTPortIO, HasPeripheryUARTModuleImp, UARTParams}
+import sifive.blocks.devices.uart.{UARTPortIO, HasPeripheryUARTModuleImp}
 import sifive.blocks.devices.jtag.{JTAGPins, JTAGPinsFromPort}
 import sifive.blocks.devices.pinctrl.{BasePin}
 
 import sifive.fpgashells.ip.xilinx.{IBUFG, IOBUF, PULLUP, PowerOnResetFPGAOnly}
 
-import chipyard._
-import chipyard.harness._
+import sifive.blocks.devices.gpio._
+import sifive.blocks.devices.uart._
+import sifive.blocks.devices.spi._
+import sifive.blocks.devices.i2c._
+import sifive.blocks.devices.pwm._
+
+import chipyard.harness.{ComposeHarnessBinder, OverrideHarnessBinder}
 import chipyard.iobinders.JTAGChipIO
 
-import testchipip._
+class WithArtyResetHarnessBinder extends ComposeHarnessBinder({
+  (system: HasPeripheryDebug, th: Arty100THarness, ports: Seq[Data]) => {
+    val resetPorts = ports.collect { case b: Bool => b }
+    require(resetPorts.size == 2)
+    withClockAndReset(th.clock_32MHz, th.ck_rst) {
+      // Debug module reset
+      th.dut_ndreset := resetPorts(0)
 
-class WithArty100TUARTTSI(uartBaudRate: BigInt = 115200) extends OverrideHarnessBinder({
-  (system: CanHavePeripheryTLSerial, th: HasHarnessInstantiators, ports: Seq[ClockedIO[SerialIO]]) => {
-    implicit val p = chipyard.iobinders.GetSystemParameters(system)
-    ports.map({ port =>
-      val ath = th.asInstanceOf[LazyRawModuleImp].wrapper.asInstanceOf[Arty100THarness]
-      val freq = p(PeripheryBusKey).dtsFrequency.get
-      val bits = port.bits
-      port.clock := th.harnessBinderClock
-      val ram = TSIHarness.connectRAM(system.serdesser.get, bits, th.harnessBinderReset)
-      val uart_to_serial = Module(new UARTToSerial(
-        freq, UARTParams(0, initBaudRate=uartBaudRate)))
-      val serial_width_adapter = Module(new SerialWidthAdapter(
-        narrowW = 8, wideW = TSI.WIDTH))
-      serial_width_adapter.io.narrow.flipConnect(uart_to_serial.io.serial)
-
-      ram.module.io.tsi.flipConnect(serial_width_adapter.io.wide)
-
-      ath.io_uart_bb.bundle <> uart_to_serial.io.uart
-      ath.other_leds(1) := uart_to_serial.io.dropped
-
-      ath.other_leds(9) := ram.module.io.tsi2tl_state(0)
-      ath.other_leds(10) := ram.module.io.tsi2tl_state(1)
-      ath.other_leds(11) := ram.module.io.tsi2tl_state(2)
-      ath.other_leds(12) := ram.module.io.tsi2tl_state(3)
-    })
+      // JTAG reset
+      resetPorts(1) := PowerOnResetFPGAOnly(th.clock_32MHz)
+    }
   }
 })
 
-class WithArty100TDDRTL extends OverrideHarnessBinder({
-  (system: CanHaveMasterTLMemPort, th: HasHarnessInstantiators, ports: Seq[HeterogeneousBag[TLBundle]]) => {
-    require(ports.size == 1)
-    val artyTh = th.asInstanceOf[LazyRawModuleImp].wrapper.asInstanceOf[Arty100THarness]
-    val bundles = artyTh.ddrClient.out.map(_._1)
-    val ddrClientBundle = Wire(new HeterogeneousBag(bundles.map(_.cloneType)))
-    bundles.zip(ddrClientBundle).foreach { case (bundle, io) => bundle <> io }
-    ddrClientBundle <> ports.head
+class WithArtyJTAGHarnessBinder extends OverrideHarnessBinder({
+  (system: HasPeripheryDebug, th: Arty100THarness, ports: Seq[Data]) => {
+    ports.map {
+      case j: JTAGChipIO => withClockAndReset(th.referenceClock, th.hReset) {
+        val jtag_wire = Wire(new JTAGIO)
+        jtag_wire.TDO.data := j.TDO
+        jtag_wire.TDO.driven := true.B
+        j.TCK := jtag_wire.TCK
+        j.TMS := jtag_wire.TMS
+        j.TDI := jtag_wire.TDI
+
+        val io_jtag = Wire(new JTAGPins(() => new BasePin(), false)).suggestName("jtag")
+
+        JTAGPinsFromPort(io_jtag, jtag_wire)
+
+        io_jtag.TCK.i.ival := IBUFG(IOBUF(th.jd_2).asClock).asBool
+
+        IOBUF(th.jd_5, io_jtag.TMS)
+        PULLUP(th.jd_5)
+
+        IOBUF(th.jd_4, io_jtag.TDI)
+        PULLUP(th.jd_4)
+
+        IOBUF(th.jd_0, io_jtag.TDO)
+
+        // mimic putting a pullup on this line (part of reset vote)
+        th.SRST_n := IOBUF(th.jd_6)
+        PULLUP(th.jd_6)
+
+        // ignore the po input
+        io_jtag.TCK.i.po.map(_ := DontCare)
+        io_jtag.TDI.i.po.map(_ := DontCare)
+        io_jtag.TMS.i.po.map(_ := DontCare)
+        io_jtag.TDO.i.po.map(_ := DontCare)
+      }
+      case b: Bool =>
+    }
+  }
+})
+
+class WithArtyUARTHarnessBinder extends OverrideHarnessBinder({
+  (system: HasPeripheryUARTModuleImp, th: Arty100THarness, ports: Seq[UARTPortIO]) => {
+    withClockAndReset(th.clock_32MHz, th.ck_rst) {
+      IOBUF(th.uart_rxd_out, ports(0).txd)
+      ports(0).rxd := IOBUF(th.uart_txd_in)
+      
+      IOBUF(th.jd_3, ports(1).txd)
+      ports(1).rxd := IOBUF(th.jd_7)
+
+      IOBUF(th.ck_io(0), ports(2).txd)
+      ports(2).rxd := IOBUF(th.ck_io(1))
+    }
+  }
+})
+
+class WithArtyGPIOHarnessBinder extends OverrideHarnessBinder({
+  (system: HasPeripheryGPIOModuleImp, th: Arty100THarness, ports: Seq[GPIOPortIO]) => {
+    withClockAndReset(th.clock_32MHz, th.ck_rst) {
+      IOBUF(th.led0_r, ports(0).pins(0).toBasePin())
+      IOBUF(th.led0_g, ports(0).pins(1).toBasePin())
+      IOBUF(th.led0_b, ports(0).pins(2).toBasePin())
+      IOBUF(th.led(0),  ports(0).pins(3).toBasePin())
+      IOBUF(th.led1_r, ports(0).pins(4).toBasePin())
+      IOBUF(th.led1_g, ports(0).pins(5).toBasePin())
+      IOBUF(th.led1_b, ports(0).pins(6).toBasePin())
+      IOBUF(th.led(1),  ports(0).pins(7).toBasePin())
+      IOBUF(th.led2_r, ports(0).pins(8).toBasePin())
+      IOBUF(th.led2_g, ports(0).pins(9).toBasePin())
+      IOBUF(th.led2_b, ports(0).pins(10).toBasePin())
+      IOBUF(th.led(2),  ports(0).pins(11).toBasePin())
+      IOBUF(th.led3_r, ports(0).pins(12).toBasePin())
+      IOBUF(th.led3_g, ports(0).pins(13).toBasePin())
+      IOBUF(th.led3_b, ports(0).pins(14).toBasePin())
+      IOBUF(th.led(3),  ports(0).pins(15).toBasePin())
+      IOBUF(th.sw(0),   ports(0).pins(16).toBasePin())
+      IOBUF(th.sw(1),   ports(0).pins(17).toBasePin())
+      IOBUF(th.sw(2),   ports(0).pins(18).toBasePin())
+      IOBUF(th.sw(3),   ports(0).pins(19).toBasePin())
+      IOBUF(th.btn(0),  ports(0).pins(20).toBasePin())
+      IOBUF(th.btn(1),  ports(0).pins(21).toBasePin())
+      IOBUF(th.btn(2),  ports(0).pins(22).toBasePin())
+      IOBUF(th.btn(3),  ports(0).pins(23).toBasePin())
+
+      IOBUF(th.ck_io(26), ports(1).pins(0).toBasePin())
+      IOBUF(th.ck_io(27), ports(1).pins(1).toBasePin())
+      IOBUF(th.ck_io(28), ports(1).pins(2).toBasePin())
+      IOBUF(th.ck_io(29), ports(1).pins(3).toBasePin())
+      IOBUF(th.ck_io(30), ports(1).pins(4).toBasePin())
+      IOBUF(th.ck_io(31), ports(1).pins(5).toBasePin())
+      IOBUF(th.ck_io(32), ports(1).pins(6).toBasePin())
+      IOBUF(th.ck_io(33), ports(1).pins(7).toBasePin())
+      IOBUF(th.ck_io(34), ports(1).pins(8).toBasePin())
+      IOBUF(th.ck_io(35), ports(1).pins(9).toBasePin())
+      IOBUF(th.ck_io(36), ports(1).pins(10).toBasePin())
+      IOBUF(th.ck_io(37), ports(1).pins(11).toBasePin())
+      IOBUF(th.ck_io(38), ports(1).pins(12).toBasePin())
+      IOBUF(th.ck_io(39), ports(1).pins(13).toBasePin())
+      IOBUF(th.ck_io(40), ports(1).pins(14).toBasePin())
+      IOBUF(th.ck_io(41), ports(1).pins(15).toBasePin())
+
+      IOBUF(th.ck_io(8), ports(2).pins(0).toBasePin())
+      IOBUF(th.ck_io(9), ports(2).pins(1).toBasePin())
+    }
+  }
+})
+
+class WithArtyQSPIHarnessBinder extends OverrideHarnessBinder({
+  (system: HasPeripherySPIFlashModuleImp, th: Arty100THarness, ports: Seq[SPIPortIO]) => {
+    // // connect to on-board SPI Flash
+    // th.connectSPIFlash(ports(0), th.clock_32MHz, th.ck_rst)
+    withClockAndReset(th.clock_32MHz, th.ck_rst) {
+      
+      IOBUF(th.qspi_sck, ports(0).sck)
+      IOBUF(th.qspi_cs, ports(0).cs(0))
+      
+      ports(0).dq(0).i := IOBUF(th.qspi_dq(0), ports(0).dq(0).o, true.B)
+      ports(0).dq(1).i := IOBUF(th.qspi_dq(1), ports(0).dq(1).o, true.B)
+      ports(0).dq(2).i := IOBUF(th.qspi_dq(2), ports(0).dq(2).o, true.B)
+      ports(0).dq(3).i := IOBUF(th.qspi_dq(3), ports(0).dq(3).o, true.B)
+
+      // val qspi_pins = Wire(new SPIPins(() => {new BasePin()}, ports(0).c))
+      
+      // // SPIPinsFromPort(qspi_pins, ports(0), th.clock_32MHz, th.ck_rst, syncStages = ports(0).c.defaultSampleDel)
+      // val syncStages = ports(0).c.defaultSampleDel
+      // qspi_pins.sck.outputPin(ports(0).sck)
+
+      // (qspi_pins.dq zip ports(0).dq).zipWithIndex.foreach {case ((p, s), i) =>
+      //   p.outputPin(s.o, pullup_en=true.B)
+      //   p.o.oe := s.oe
+      //   p.o.ie := ~s.oe
+      //   s.i := SynchronizerShiftReg(p.i.ival, syncStages, name = Some(s"spi_dq_${i}_sync"))
+      // }
+
+      // (qspi_pins.cs zip ports(0).cs) foreach { case (c, s) =>
+      //   c.outputPin(s)
+      // }
+      
+      // IOBUF(th.qspi_sck, ports(0).sck)
+      // IOBUF(th.qspi_cs,  ports(0).cs(0))
+      // (th.qspi_dq zip qspi_pins.dq).foreach { case(a, b) => IOBUF(a, b) }
+    }
   }
 })
