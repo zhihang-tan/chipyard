@@ -81,6 +81,7 @@ class ExampleChipConfig extends Config(
   // ==================================
   //   Set up Memory Devices
   // ==================================
+<<<<<<< HEAD
 
   // External memory section
   new testchipip.WithNoSerialTL ++
@@ -95,6 +96,18 @@ class ExampleChipConfig extends Config(
   new chipyard.config.WithGPIO(address = 0x10011000, width = 24) ++
   new chipyard.config.WithGPIO(address = 0x10010000, width = 3) ++
 
+=======
+  // External memory section
+  new testchipip.WithSerialTLClientIdBits(4) ++                     // support up to 1 << 4 simultaneous requests from serialTL port
+  new testchipip.WithSerialTLWidth(32) ++                           // fatten the serialTL interface to improve testing performance
+  new testchipip.WithDefaultSerialTL ++                             // use serialized tilelink port to external serialadapter/harnessRAM
+
+  new testchipip.WithMbusScratchpad(base = 0x08000000) ++       // use rocket l1 DCache scratchpad as base phys mem
+
+  // Peripheral section
+  new chipyard.config.WithUART(address = 0x10020000, baudrate = 115200) ++
+
+>>>>>>> ef3c9b34f2adf57bdd7fb5dcf5dfe646e802d789
   // Core section
   new chipyard.config.WithBootROM ++                                // use default bootrom
   new testchipip.WithCustomBootPin ++                               // add a custom-boot-pin to support pin-driven boot address
@@ -110,12 +123,21 @@ class ExampleChipConfig extends Config(
   new freechips.rocketchip.subsystem.WithJtagDTM ++                 // set the debug module to expose a JTAG port
 
   // Cache settings
+<<<<<<< HEAD
   // new freechips.rocketchip.subsystem.WithL1ICacheSets(64) ++
   // new freechips.rocketchip.subsystem.WithL1ICacheWays(2) ++
   // new freechips.rocketchip.subsystem.WithL1DCacheSets(64) ++
   // new freechips.rocketchip.subsystem.WithL1DCacheWays(2) ++
   new chipyard.config.WithL2TLBs(0) ++
   // new freechips.rocketchip.subsystem.WithInclusiveCache ++          // use Sifive L2 cache
+=======
+  new freechips.rocketchip.subsystem.WithL1ICacheSets(64) ++
+  new freechips.rocketchip.subsystem.WithL1ICacheWays(2) ++
+  new freechips.rocketchip.subsystem.WithL1DCacheSets(64) ++
+  new freechips.rocketchip.subsystem.WithL1DCacheWays(2) ++
+  new chipyard.config.WithL2TLBs(0) ++
+  new freechips.rocketchip.subsystem.WithInclusiveCache ++          // use Sifive L2 cache
+>>>>>>> ef3c9b34f2adf57bdd7fb5dcf5dfe646e802d789
 
   // Memory settings
   new chipyard.config.WithNPMPs(0) ++
@@ -126,7 +148,11 @@ class ExampleChipConfig extends Config(
 
   // Core settings
   new freechips.rocketchip.subsystem.WithNExtTopInterrupts(0) ++    // no external interrupts
+<<<<<<< HEAD
   new freechips.rocketchip.subsystem.WithNBigCores(1) ++
+=======
+  new freechips.rocketchip.subsystem.WithNSmallCores(1) ++
+>>>>>>> ef3c9b34f2adf57bdd7fb5dcf5dfe646e802d789
 
   // ==================================
   //   Set up reset and clocking
@@ -146,4 +172,8 @@ class ExampleChipConfig extends Config(
   new freechips.rocketchip.subsystem.WithDTS("ucb-bar, chipyard", Nil) ++ // custom device name for DTS
   new freechips.rocketchip.system.BaseConfig                        // "base" rocketchip system
 )
+<<<<<<< HEAD
+=======
+
+>>>>>>> ef3c9b34f2adf57bdd7fb5dcf5dfe646e802d789
 
