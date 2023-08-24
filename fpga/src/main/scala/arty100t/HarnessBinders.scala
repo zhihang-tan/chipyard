@@ -16,6 +16,7 @@ import sifive.blocks.devices.uart._
 import sifive.blocks.devices.spi._
 import sifive.blocks.devices.i2c._
 import sifive.blocks.devices.pwm._
+import testchipip.{CanHavePeripheryCustomBootPin}
 
 import chipyard.harness.{ComposeHarnessBinder, OverrideHarnessBinder}
 import chipyard.iobinders.JTAGChipIO
@@ -74,9 +75,17 @@ class WithArtyJTAGHarnessBinder extends OverrideHarnessBinder({
   }
 })
 
+class WithArtyCustomBootHarnessBinder extends ComposeHarnessBinder({
+  (system: CanHavePeripheryCustomBootPin, th: Arty100THarness, ports: Seq[Data]) => {
+    withClockAndReset(th.referenceClock, th.hReset) {
+      ports(0) := IOBUF(th.sw(0))
+    }
+  }
+})
+
 class WithArtyUARTHarnessBinder extends OverrideHarnessBinder({
   (system: HasPeripheryUARTModuleImp, th: Arty100THarness, ports: Seq[UARTPortIO]) => {
-    withClockAndReset(th.clock_32MHz, th.ck_rst) {
+    withClockAndReset(th.referenceClock, th.ck_rst) {
       IOBUF(th.uart_rxd_out, ports(0).txd)
       ports(0).rxd := IOBUF(th.uart_txd_in)
       
@@ -108,7 +117,8 @@ class WithArtyGPIOHarnessBinder extends OverrideHarnessBinder({
       IOBUF(th.led3_g, ports(0).pins(13).toBasePin())
       IOBUF(th.led3_b, ports(0).pins(14).toBasePin())
       IOBUF(th.led(3),  ports(0).pins(15).toBasePin())
-      IOBUF(th.sw(0),   ports(0).pins(16).toBasePin())
+      // IOBUF(th.sw(0),   ports(0).pins(16).toBasePin())
+        IOBUF(th.jb_4,   ports(0).pins(16).toBasePin())
       IOBUF(th.sw(1),   ports(0).pins(17).toBasePin())
       IOBUF(th.sw(2),   ports(0).pins(18).toBasePin())
       IOBUF(th.sw(3),   ports(0).pins(19).toBasePin())

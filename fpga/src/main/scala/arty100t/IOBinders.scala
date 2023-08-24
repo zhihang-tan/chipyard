@@ -1,7 +1,7 @@
 package chipyard.fpga.arty100t
 
 import chisel3._
-import chisel3.experimental.{IO}
+import chisel3.util._
 
 import freechips.rocketchip.devices.debug.{HasPeripheryDebug}
 
@@ -10,6 +10,7 @@ import sifive.blocks.devices.uart._
 import sifive.blocks.devices.spi._
 import sifive.blocks.devices.i2c._
 import sifive.blocks.devices.pwm._
+import testchipip.{CanHavePeripheryCustomBootPin}
 
 import chipyard.iobinders.{ComposeIOBinder, OverrideIOBinder}
 
@@ -27,6 +28,15 @@ class WithDebugResetPassthrough extends ComposeIOBinder({
     // (Seq(io_ndreset, io_sjtag_reset), Nil)
     (Seq(io_ndreset), Nil)
   }
+})
+
+class WithArtyCustomBootPassthrough extends OverrideIOBinder({
+  (system: CanHavePeripheryCustomBootPin) => system.custom_boot_pin.map({p =>
+    val name = s"bootsel_0"
+    val port = IO(Input(Bool())).suggestName(name)
+    port <> p.getWrappedValue
+    (Seq(port), Nil)
+  }).getOrElse((Nil, Nil))
 })
 
 class WithUARTPassthrough extends OverrideIOBinder({

@@ -40,7 +40,7 @@ class ExampleChipArty100TConfig extends Config(
   // new chipyard.harness.WithSimAXIMMIO ++                           // add SimAXIMem for axi4 mmio port, if enabled
   new chipyard.harness.WithTieOffInterrupts ++                     // tie-off interrupt ports, if present
   new chipyard.harness.WithTieOffL2FBusAXI ++                      // tie-off external AXI4 master, if present
-  new chipyard.harness.WithCustomBootPinPlusArg ++                 // drive custom-boot pin with a plusarg, if custom-boot-pin is present
+  // new chipyard.harness.WithCustomBootPinPlusArg ++                 // drive custom-boot pin with a plusarg, if custom-boot-pin is present
   
 
   // ==================================
@@ -60,6 +60,10 @@ class ExampleChipArty100TConfig extends Config(
   new WithArtyResetHarnessBinder ++
   new WithDebugResetPassthrough ++
 
+  new WithArtyCustomBootPassthrough ++
+  new WithArtyCustomBootHarnessBinder ++
+
+
   // The IOBinders instantiate ChipTop IOs to match desired digital IOs
   // IOCells are generated for "Chip-like" IOs, while simulation-only IOs are directly punched through
   new chipyard.iobinders.WithAXI4MemPunchthrough ++
@@ -75,7 +79,7 @@ class ExampleChipArty100TConfig extends Config(
   new chipyard.iobinders.WithSPIIOCells ++
   new chipyard.iobinders.WithTraceIOPunchthrough ++
   new chipyard.iobinders.WithExtInterruptIOCells ++
-  new chipyard.iobinders.WithCustomBootPin ++
+  // new chipyard.iobinders.WithCustomBootPin ++
 
   // ==================================
   //   Set up Memory Devices
