@@ -28,8 +28,10 @@ class WithArty100TUARTTSI extends HarnessBinder({
     val harnessIO = IO(new UARTPortIO(port.io.uartParams)).suggestName("uart_tsi")
     harnessIO <> port.io.uart
     val packagePinsWithPackageIOs = Seq(
-      ("A9" , IOPin(harnessIO.rxd)),
-      ("D10", IOPin(harnessIO.txd)))
+      // ("A9", IOPin(harnessIO.rxd)),
+      // ("D10", IOPin(harnessIO.txd)))
+      ("G2", IOPin(harnessIO.rxd)),
+      ("F3", IOPin(harnessIO.txd)))
     packagePinsWithPackageIOs foreach { case (pin, io) => {
       ath.xdc.addPackagePin(io, pin)
       ath.xdc.addIOStandard(io, "LVCMOS33")
@@ -64,18 +66,18 @@ class WithArty100TSerialTLToGPIO extends HarnessBinder({
     val clkIO = IOPin(harnessIO.clock)
     val packagePinsWithPackageIOs = Seq(
       ("G13", clkIO),
-      ("B11", IOPin(harnessIO.bits.out.valid)),
-      ("A11", IOPin(harnessIO.bits.out.ready)),
-      ("D12", IOPin(harnessIO.bits.in.valid)),
-      ("D13", IOPin(harnessIO.bits.in.ready)),
-      ("B18", IOPin(harnessIO.bits.out.bits, 0)),
-      ("A18", IOPin(harnessIO.bits.out.bits, 1)),
-      ("K16", IOPin(harnessIO.bits.out.bits, 2)),
-      ("E15", IOPin(harnessIO.bits.out.bits, 3)),
-      ("E16", IOPin(harnessIO.bits.in.bits, 0)),
-      ("D15", IOPin(harnessIO.bits.in.bits, 1)),
-      ("C15", IOPin(harnessIO.bits.in.bits, 2)),
-      ("J17", IOPin(harnessIO.bits.in.bits, 3))
+      ("B11", IOPin(harnessIO.bits.in.valid)),
+      ("A11", IOPin(harnessIO.bits.in.ready)),
+      ("D12", IOPin(harnessIO.bits.in.bits, 0)),
+      // ("E15", IOPin(harnessIO.bits.in.bits, 1)),
+      // ("E16", IOPin(harnessIO.bits.in.bits, 2)),
+      // ("D15", IOPin(harnessIO.bits.in.bits, 3)),
+      ("B18", IOPin(harnessIO.bits.out.valid)),
+      ("A18", IOPin(harnessIO.bits.out.ready)),
+      ("K16", IOPin(harnessIO.bits.out.bits, 0))
+      // ("J17", IOPin(harnessIO.bits.out.bits, 1)),
+      // ("J18", IOPin(harnessIO.bits.out.bits, 2)),
+      // ("K15", IOPin(harnessIO.bits.out.bits, 3))
     )
     packagePinsWithPackageIOs foreach { case (pin, io) => {
       artyTh.xdc.addPackagePin(io, pin)
@@ -113,7 +115,8 @@ class WithArty100TUART(rxdPin: String = "A9", txdPin: String = "D10") extends Ha
 })
 
 // Maps the UART device to PMOD JD pins 3/7
-class WithArty100TPMODUART extends WithArty100TUART("G2", "F3")
+// class WithArty100TPMODUART extends WithArty100TUART("G2", "F3")
+class WithArty100TPMODUART extends WithArty100TUART("A9", "D10")
 
 class WithArty100TJTAG extends HarnessBinder({
   case (th: HasHarnessInstantiators, port: JTAGPort) => {

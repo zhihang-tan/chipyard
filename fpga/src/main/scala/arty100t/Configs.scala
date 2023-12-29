@@ -46,6 +46,7 @@ class WithArty100TTweaks(freqMHz: Double = 50) extends Config(
 
 class RocketArty100TConfig extends Config(
   new WithArty100TTweaks ++
+  new testchipip.WithMbusScratchpad(base = 0x08000000, size = 128 * 1024) ++ // use rocket l1 DCache scratchpad
   new chipyard.config.WithBroadcastManager ++ // no l2
   new chipyard.RocketConfig)
 
@@ -57,6 +58,6 @@ class NoCoresArty100TConfig extends Config(
 // This will fail to close timing above 50 MHz
 class BringupArty100TConfig extends Config(
   new WithArty100TSerialTLToGPIO ++
-  new WithArty100TTweaks(freqMHz = 50) ++
-  new testchipip.WithSerialTLClockDirection(provideClockFreqMHz = Some(50)) ++
+  new WithArty100TTweaks(freqMHz = 5) ++
+  new testchipip.WithSerialTLClockDirection(provideClockFreqMHz = Some(5)) ++
   new chipyard.ChipBringupHostConfig)
