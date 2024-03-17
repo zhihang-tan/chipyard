@@ -5,8 +5,8 @@ import chisel3._
 import chisel3.util.{log2Up}
 
 import org.chipsalliance.cde.config.{Config}
-import freechips.rocketchip.devices.tilelink.{BootROMLocated, PLICKey, CLINTKey}
-import freechips.rocketchip.devices.debug.{Debug, ExportDebug, DebugModuleKey, DMI, JtagDTMKey, JtagDTMConfig}
+import freechips.rocketchip.devices.tilelink.{BootROMLocated, PLICKey, CLINTKey, CLINTParams, PLICParams}
+import freechips.rocketchip.devices.debug.{Debug, ExportDebug, DebugModuleKey, DMI, JtagDTMKey, JtagDTMConfig, DefaultDebugModuleParams}
 import freechips.rocketchip.diplomacy.{AsynchronousCrossing}
 import chipyard.stage.phases.TargetDirKey
 import freechips.rocketchip.subsystem._
@@ -114,8 +114,20 @@ class WithI2C(address: BigInt = 0x10040000) extends Config((site, here, up) => {
   )
 })
 
+class WithDebug extends Config((site, here, up) => {
+  case DebugModuleKey => Some(DefaultDebugModuleParams(site(XLen)))
+})
+
 class WithNoDebug extends Config((site, here, up) => {
   case DebugModuleKey => None
+})
+
+class WithCLINT extends Config((site, here, up) => {
+  case CLINTKey => Some(CLINTParams())
+})
+
+class WithPLIC extends Config((site, here, up) => {
+  case PLICKey => Some(PLICParams())
 })
 
 class WithDMIDTM extends Config((site, here, up) => {
