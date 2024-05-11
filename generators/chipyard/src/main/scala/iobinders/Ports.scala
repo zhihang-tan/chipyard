@@ -109,3 +109,5 @@ case class JTAGResetPort   (val getIO: () => Reset)
 case class TLMemPort       (val getIO: () => HeterogeneousBag[TLBundle])
     extends Port[HeterogeneousBag[TLBundle]]
 
+case class OffchipSelPort  (val getIO: () => UInt)
+    extends Port[UInt]
