@@ -111,3 +111,7 @@ case class TLMemPort       (val getIO: () => HeterogeneousBag[TLBundle])
 
 case class OffchipSelPort  (val getIO: () => UInt)
     extends Port[UInt]
+
+case class GCDBusyPort     (val getIO: () => Bool)
+    extends Port[Bool]
+

@@ -78,18 +78,6 @@ ifeq ($(SUB_PROJECT),chipyard)
 	TB                ?= TestDriver
 	TOP               ?= ChipTop
 endif
-# for Hwacha developers
-ifeq ($(SUB_PROJECT),hwacha)
-	SBT_PROJECT       ?= chipyard
-	MODEL             ?= TestHarness
-	VLOG_MODEL        ?= $(MODEL)
-	MODEL_PACKAGE     ?= freechips.rocketchip.system
-	CONFIG            ?= HwachaConfig
-	CONFIG_PACKAGE    ?= hwacha
-	GENERATOR_PACKAGE ?= chipyard
-	TB                ?= TestDriver
-	TOP               ?= ExampleRocketSystem
-endif
 # For TestChipIP developers running unit-tests
 ifeq ($(SUB_PROJECT),testchipip)
 	SBT_PROJECT       ?= chipyard
@@ -154,17 +142,13 @@ CHIPYARD_RSRCS_DIR   = $(base_dir)/generators/chipyard/src/main/resources
 # names of various files needed to compile and run things
 #########################################################################################
 long_name = $(MODEL_PACKAGE).$(MODEL).$(CONFIG)
-ifeq ($(GENERATOR_PACKAGE),hwacha)
-	long_name=$(MODEL_PACKAGE).$(CONFIG)
-endif
 
 # classpaths
 CLASSPATH_CACHE ?= $(base_dir)/.classpath_cache
-CHIPYARD_CLASSPATH ?= $(CLASSPATH_CACHE)/chipyard.jar
+# The generator classpath must contain the Generator main
+GENERATOR_CLASSPATH ?= $(CLASSPATH_CACHE)/$(SBT_PROJECT).jar
+# The tapeout classpath must contain MacroCompiler
 TAPEOUT_CLASSPATH ?= $(CLASSPATH_CACHE)/tapeout.jar
-# if *_CLASSPATH is a true java classpath, it can be colon-delimited list of paths (on *nix)
-CHIPYARD_CLASSPATH_TARGETS ?= $(subst :, ,$(CHIPYARD_CLASSPATH))
-TAPEOUT_CLASSPATH_TARGETS ?= $(subst :, ,$(TAPEOUT_CLASSPATH))
 
 # chisel generated outputs
 FIRRTL_FILE ?= $(build_dir)/$(long_name).fir

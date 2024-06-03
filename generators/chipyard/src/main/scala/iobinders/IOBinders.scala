@@ -39,6 +39,7 @@ import testchipip.cosim.{CanHaveTraceIO, TraceOutputTop, SpikeCosimConfig}
 import testchipip.tsi.{CanHavePeripheryUARTTSI, UARTTSIIO}
 import icenet.{CanHavePeripheryIceNIC, SimNetwork, NicLoopback, NICKey, NICIOvonly}
 import chipyard.{CanHaveMasterTLMemPort, ChipyardSystem, ChipyardSystemModule}
+import chipyard.example.{CanHavePeripheryGCD}
 
 import scala.reflect.{ClassTag}
 
@@ -549,4 +550,12 @@ class WithOffchipBusSel extends OverrideIOBinder({
       (Seq(OffchipSelPort(() => port)), cells)
     }.getOrElse(Nil, Nil)
   }
+})
+
+class WithGCDBusyPunchthrough extends OverrideIOBinder({
+  (system: CanHavePeripheryGCD) => system.gcd_busy.map { busy =>
+    val io_gcd_busy = IO(Output(Bool()))
+    io_gcd_busy := busy
+    (Seq(GCDBusyPort(() => io_gcd_busy)), Nil)
+  }.getOrElse((Nil, Nil))
 })
